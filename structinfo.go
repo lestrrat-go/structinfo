@@ -15,12 +15,34 @@ type jsonFieldMap struct {
 var type2jfm = map[reflect.Type]jsonFieldMap{}
 var type2jfmMutex = sync.Mutex{}
 
+// JSONFieldsFromStruct returns the names of JSON fields associated
+// with the given struct. Returns nil if v is not a struct
+func JSONFieldsFromStruct(v reflect.Value) []string {
+	if v.Kind() != reflect.Struct {
+		return nil
+	}
+
+	m := getType2jfm(v.Type())
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
+	l := make([]string, 0, len(m.fields))
+	for k := range m.fields {
+		l = append(l, k)
+	}
+	return l
+}
+
 // StructFieldFromJSONName returns the struct field index on the
 // given struct value. Value of -1 means the field is either not
 // public, or does not exist.
 //
 // This can be used to map JSON field names to actual struct fields.
 func StructFieldFromJSONName(v reflect.Value, name string) int {
+	if v.Kind() != reflect.Struct {
+		return -1
+	}
+
 	m := getType2jfm(v.Type())
 	m.lock.Lock()
 	defer m.lock.Unlock()
