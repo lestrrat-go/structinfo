@@ -8,11 +8,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type Quux struct {
+	Baz string `json:"baz"`
+}
+
 type X struct {
 	private int
-	Foo     string `json:"foo"`
-	Bar     string `json:"bar,omitempty"`
-	Baz     string `json:"baz"`
+	Quux
+	Foo string `json:"foo"`
+	Bar string `json:"bar,omitempty"`
 }
 
 func TestStructFields(t *testing.T) {
@@ -34,7 +38,6 @@ func TestStructFields(t *testing.T) {
 
 func TestLookupSructFieldFromJSONName(t *testing.T) {
 	rv := reflect.ValueOf(X{})
-	zero := reflect.Value{}
 
 	data := map[string]string{
 		"foo": "Foo",
@@ -43,13 +46,13 @@ func TestLookupSructFieldFromJSONName(t *testing.T) {
 	}
 
 	for jsname, fname := range data {
-		i := structinfo.StructFieldFromJSONName(rv, jsname)
-		if !assert.NotEqual(t, i, -1, "should find '%s'", jsname) {
+		fn := structinfo.StructFieldFromJSONName(rv, jsname)
+		if !assert.NotEqual(t, fn, "", "should find '%s'", jsname) {
 			return
 		}
 
-		sf := rv.Type().Field(i)
-		if !assert.NotEqual(t, zero, sf, "should not be a zero value") {
+		sf, ok := rv.Type().FieldByName(fn)
+		if !assert.True(t, ok, "should be able resolve '%s' (%s)", jsname, fn) {
 			return
 		}
 
