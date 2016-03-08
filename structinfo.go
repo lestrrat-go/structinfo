@@ -95,7 +95,11 @@ func constructJfm(t reflect.Type) jsonFieldMap {
 		}
 
 		tag := sf.Tag.Get("json")
-		if tag == "" || tag == "-" || tag[0] == ',' {
+		if tag == "-" {
+			continue
+		}
+
+		if tag == "" || tag[0] == ',' {
 			fm.fields[sf.Name] = sf.Name
 			continue
 		}
