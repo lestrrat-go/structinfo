@@ -61,3 +61,45 @@ func TestLookupSructFieldFromJSONName(t *testing.T) {
 		}
 	}
 }
+
+func TestStore_LookupFromJSONName(t *testing.T) {
+	x := &X{
+		Foo: "abc",
+		Bar: "def",
+		Quux: Quux{
+			Baz: "ghi",
+		},
+	}
+
+	rv := reflect.ValueOf(x)
+	data := map[string]string{
+		"foo": "abc",
+		"bar": "def",
+		"baz": "ghi",
+	}
+
+	store := structinfo.NewStore()
+
+	for jsname, value := range data {
+		fv, err := store.FieldValue(rv, jsname)
+		if !assert.NoError(t, err, `FieldValue should succeed`) {
+			return
+		}
+
+		if !assert.Equal(t, fv.Interface(), value, `values should match`) {
+			return
+		}
+
+		fv.Set(reflect.ValueOf("hacked"))
+	}
+
+	if !assert.Equal(t, x.Foo, "hacked", "x.Foo should be hacked") {
+		return
+	}
+	if !assert.Equal(t, x.Bar, "hacked", "x.Bar should be hacked") {
+		return
+	}
+	if !assert.Equal(t, x.Baz, "hacked", "x.Baz should be hacked") {
+		return
+	}
+}
