@@ -15,7 +15,6 @@ type Quux struct {
 }
 
 type X struct {
-	private int
 	Quux
 	Foo string `json:"foo"`
 	Bar string `json:"bar,omitempty"`
