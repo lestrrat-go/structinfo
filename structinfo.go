@@ -14,7 +14,7 @@ var DefaultStore = NewStore()
 
 // Store holds cached information about struct data
 type Store struct {
-	mu sync.RWMutex
+	mu    sync.RWMutex
 	cache map[reflect.Type]*typeData
 }
 
@@ -110,10 +110,11 @@ func (s *Store) FieldValue(rv reflect.Value, name string) (reflect.Value, error)
 		// XXX is this kosher for go < 1.13 ?
 		return zeroval, fmt.Errorf(`failed to find field name %s: %w`, name, err)
 	}
-	
+
 	fv := rv.FieldByName(fn)
-	if fv.IsZero() {
-		return zeroval, fmt.Errorf(`invalid: failed to query for field %s (json: %s)`, name, fn)
+	// is this settable?
+	if !fv.CanSet() {
+		return zeroval, fmt.Errorf(`invalid: field %s (json: %s) is not settable`, name, fn)
 	}
 
 	return fv, nil
@@ -136,7 +137,7 @@ func JSONFieldsFromStruct(v reflect.Value) []string {
 // public, or does not exist.
 //
 // This can be used to map JSON field names to actual struct fields.
-// 
+//
 // (This method should probably be considered deprecated)
 func StructFieldFromJSONName(v reflect.Value, name string) string {
 	fn, err := DefaultStore.FieldName(v, name)
@@ -194,7 +195,6 @@ func (s *Store) FieldName(rv reflect.Value, name string) (string, error) {
 		return "", errors.New(`value must be of kind reflect.Struct`)
 	}
 
-
 	rt := rv.Type()
 
 	s.mu.RLock()
@@ -216,4 +216,3 @@ func (s *Store) FieldName(rv reflect.Value, name string) (string, error) {
 	}
 	return fn, nil
 }
-

@@ -1,6 +1,8 @@
 package structinfo_test
 
 import (
+	"fmt"
+	"log"
 	"reflect"
 	"testing"
 
@@ -102,4 +104,22 @@ func TestStore_LookupFromJSONName(t *testing.T) {
 	if !assert.Equal(t, x.Baz, "hacked", "x.Baz should be hacked") {
 		return
 	}
+}
+
+func ExampleStore_FieldValue() {
+	var x struct {
+		Name string `json:"name"`
+	}
+
+	nameVal, err := structinfo.DefaultStore.FieldValue(reflect.ValueOf(&x), "name")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	nameVal.SetString("foo")
+
+	fmt.Println(x.Name)
+
+	// Output:
+	// foo
 }
